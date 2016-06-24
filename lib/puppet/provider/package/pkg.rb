@@ -1,3 +1,7 @@
+#######################################################################
+# Oracle has modified the originally distributed contents of this file.
+#######################################################################
+
 require 'puppet/provider/package'
 
 Puppet::Type.type(:package).provide :pkg, :parent => Puppet::Provider::Package do
@@ -23,7 +27,7 @@ Puppet::Type.type(:package).provide :pkg, :parent => Puppet::Provider::Package d
 
   confine :osfamily => :solaris
 
-  defaultfor :osfamily => :solaris, :kernelrelease => '5.11'
+  defaultfor :osfamily => :solaris, :kernelrelease => ['5.11', '5.12']
 
   def self.instances
     pkg(:list, '-H').split("\n").map{|l| new(parse_line(l))}
