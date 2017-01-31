@@ -16,6 +16,7 @@ class Puppet::Util::Log
 
   @levels = [:debug,:info,:notice,:warning,:err,:alert,:emerg,:crit]
   @loglevel = 2
+  @degraded = false
 
   @desttypes = {}
 
@@ -52,6 +53,16 @@ class Puppet::Util::Log
   # Reset log to basics.  Basically just flushes and closes files and
   # undefs other objects.
   def Log.close(destination)
+    if Puppet[:degrade_smf_on_error]
+      if !@degraded
+        if Puppet.run_mode.agent?
+          system 'svcadm clear puppet:agent'
+        elsif Puppet.run_mode.master?
+          system 'svcadm clear puppet:master'
+        end
+      end
+    end
+
     if @destinations.include?(destination)
       @destinations[destination].flush if @destinations[destination].respond_to?(:flush)
       @destinations[destination].close if @destinations[destination].respond_to?(:close)
@@ -168,6 +179,17 @@ class Puppet::Util::Log
   # a potential for a loop here, if the machine somehow gets the destination set as
   # itself.
   def Log.newmessage(msg)
+    if Puppet[:degrade_smf_on_error]
+      if [:err,:alert,:emerg,:crit].include? msg.level and !@degraded
+        @degraded = true
+        if Puppet.run_mode.agent?
+          system 'svcadm mark -s degraded puppet:agent'
+        elsif Puppet.run_mode.master?
+          system 'svcadm mark -s degraded puppet:master'
+        end
+      end
+    end
+
     return if @levels.index(msg.level) < @loglevel
 
     queuemessage(msg) if @destinations.length == 0
