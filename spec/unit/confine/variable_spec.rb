@@ -27,6 +27,7 @@ describe Puppet::Confine::Variable do
     end
 
     it "should use settings if the variable name is a valid setting" do
+      Puppet.settings.expects(:value).with(:degrade_smf_on_error).returns nil
       Puppet.settings.expects(:valid?).with(:myvar).returns true
       Puppet.settings.expects(:value).with(:myvar).returns "foo"
       @confine.valid?

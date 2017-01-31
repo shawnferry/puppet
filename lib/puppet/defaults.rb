@@ -123,6 +123,12 @@ module Puppet
         end
       end
     },
+    :degrade_smf_on_error => {
+        :default  => true,
+        :type     => :boolean,
+        :desc     => "Whether the SMF service for puppet should be degraded when an error
+          is logged.",
+    },
     :strict => {
       :default    => :warning,
       :type       => :symbolic_enum,
